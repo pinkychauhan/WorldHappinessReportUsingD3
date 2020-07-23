@@ -1,0 +1,17 @@
+<html>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+<style> rect {fill: lightblue; stroke: black;} </style>
+<body onload='init()'>
+<svg width=300 height=300>
+</svg>
+<script>
+async function init() {
+  const data = await d3.csv('data/2015.csv')
+  d3.select("svg").selectAll("rect").data(data).enter()
+  .append("rect")
+  .attr("width", 20)
+  .attr("height", function(d,i) {return d.HappinessScore})
+}
+</script>
+</body>
+</html>
