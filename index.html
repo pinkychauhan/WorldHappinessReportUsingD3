@@ -27,6 +27,8 @@
     width: fit-content;
   }
 
+  path {stroke: black;}
+
 </style>
 
 <body onload='inithome()'>
@@ -42,12 +44,12 @@
     HOMEPAGE
   </div>
 
-  <svg class = "chart">
+  <svg class = "barchart">
   </svg>
 
   <div id = "tooltip"></div>
 
-  <div>
+  <div id = "options">
     <fieldset>
       <legend>Regions</legend>
       <div>
@@ -96,6 +98,10 @@
       </div>
     </fieldset>
 
+    <svg class = "list"></svg>
+    <svg class = "piechart">
+    </svg>
+
   </div>
 
 <script>
@@ -111,11 +117,12 @@ async function inithome() {
   d3.selectAll("rect").remove();
   d3.select("#leftAxis").remove();
   d3.select("#bottomAxis").remove();
-  d3.select(".chart").style("opacity", 0);
+  d3.select(".barchart").style("opacity", 0);
   document.getElementById("All").checked = true;
   d3.select("fieldset").style("opacity", 0);
   d3.select(".homepage").style("opacity", 1);
-
+  d3.selectAll("path").remove();
+  d3.selectAll("g").remove();
 
 }
 
@@ -135,8 +142,10 @@ async function init(year) {
    d3.selectAll("rect").remove();
    d3.select("#leftAxis").remove();
    d3.selectAll("#bottomAxis").remove();
+   d3.selectAll("path").remove();
+   d3.selectAll("g").remove();
 
-   d3.select(".chart")
+   d3.select(".barchart")
     .style("opacity", 1)
     .attr("width", width + (2 * margin))
     .attr("height", height + (2 * margin))
@@ -155,7 +164,7 @@ async function init(year) {
    var tooltip = d3.select("#tooltip");
 
 
-   d3.select(".chart")
+   d3.select(".barchart")
      .append("g").attr("transform", "translate("+margin+","+margin+")")
      .selectAll("rect").data(data)
      .enter()
@@ -163,7 +172,7 @@ async function init(year) {
      .attr("x", function(d, i) { return  x(i) })
      .attr("y", function(d, i) { return 600 - y(d["HappinessScore"]) })
      .attr("width", 9)
-     .attr("height", function(d, i) { return y(d["HappinessScore"]) })
+     .attr("height", 2)
      .style("fill", function(d, i) {
        var selected = false;
        var i;
@@ -189,9 +198,9 @@ async function init(year) {
          }
        }
        if (selected) {
-         return "displayChartd"
+         return "displayChart"
        } else {
-         return "notdisplayCharted";
+         return "notdisplayChart";
        }
      })
      .on("mousemove", function(d, i) {
@@ -204,16 +213,90 @@ async function init(year) {
             + "<br/>Health (Life Expectancy): " + d["Health"]) })
       .on("mouseleave", function(d, i) {
         tooltip.style("opacity", 0)
-      });
+      })
+      .transition().duration(1000)
+      .attr("height", function(d, i) { return y(d["HappinessScore"]) })
+      ;
 
 
-    d3.select(".chart")
+    d3.select(".barchart")
        .append("g").attr("id","leftAxis").attr("transform", "translate("+margin+","+margin+")")
        .call(d3.axisLeft(neg_y));
 
-    d3.select(".chart")
+    d3.select(".barchart")
        .append("g").attr("id","bottomAxis").attr("transform", "translate("+margin+","+(height+margin)+")")
        .call(d3.axisBottom(x));
+
+    var sumEconomy = 0;
+    var sumSocial = 0;
+    var sumFreedom = 0;
+    var sumGenerosity = 0;
+    var sumCorruptionPerception = 0;
+    var sumHealth = 0;
+    var sumDystopiaResidual = 0;
+    var sumHappinessScore = 0;
+    var top5Countries = [];
+    var counter = 0;
+    var i,j;
+    for (j = 0; j < data.length; j++) {
+      for (i = 0; i < selectedRegions.length; i++) {
+        if (selectedRegions[i] === data[j].Region) {
+          counter = counter + 1;
+          sumEconomy = sumEconomy + parseFloat(data[j].Economy);
+          sumSocial = sumSocial + parseFloat(data[j].SocialSupport);
+          sumFreedom = sumFreedom + parseFloat(data[j].Freedom);
+          sumGenerosity = sumGenerosity + parseFloat(data[j].Generosity);
+          sumCorruptionPerception = sumCorruptionPerception + parseFloat(data[j].PerceptionOfCorruption);
+          sumHealth = sumHealth + parseFloat(data[j].Health);
+          sumDystopiaResidual = sumDystopiaResidual + parseFloat(data[j].DystopiaResidual);
+          if (counter <= 5) {
+            top5Countries.push(data[j].Country);
+          }
+        }
+      }
+    }
+    var color = ['pink','lightyellow','lightgreen','lightcyan','lightblue','violet','grey'];
+    var piedata = [sumEconomy/counter, sumSocial/counter, sumFreedom/counter, sumGenerosity/counter, sumCorruptionPerception/counter,
+                  sumHealth/counter, sumDystopiaResidual/counter];
+
+    var radius = 100;
+    var pie = d3.pie();
+    var path_begin = d3.arc()
+                     .outerRadius(radius - 50)
+                     .innerRadius(0);
+
+    var path_end = d3.arc()
+                    .outerRadius(radius - 10)
+                    .innerRadius(0);
+    var label = d3.arc()
+                      .outerRadius(radius)
+                      .innerRadius(radius - 80);
+
+    d3.select(".piechart")
+    .style("opacity", 1)
+     .style("position", "relative")
+     .style("float", "right")
+     .attr("width", 1600/4)
+     .attr("height", 600/2)
+
+
+     d3.select(".piechart")
+       .append("g").attr("transform", "translate("+150+","+150+")")
+       .selectAll("path")
+    .data(pie(piedata))
+    .enter()
+    .append("path")
+    .attr("d", path_begin)
+    .attr("fill",function(d, i) {
+      return color[i];
+    })
+    .transition().duration(1000)
+    .attr("d", path_end)
+    var k, str = "";
+    for (k = 0; k < top5Countries.length; k++) {
+      str = str + "<br/>" + top5Countries[k];
+    }
+    d3.select(".list").append("div").html("Top 5 countries: " + str);
 
 }
 
