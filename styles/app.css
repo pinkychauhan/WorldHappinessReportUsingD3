@@ -1,0 +1,185 @@
+body {
+  display: block;
+  margin: 8px;
+}
+
+.note {
+  width: fit-content;
+  height: 2.5rem;
+  text-align: center;
+  margin: auto;
+  padding: 1%;
+}
+
+.homepage {
+  width: 100%;
+}
+
+.title {
+  margin-top: 3%;
+}
+
+.title h2 {
+  margin: auto;
+  width: fit-content;
+  font-size: 2em;
+}
+
+.title h3 {
+  display: block;
+  font-size: 2em;
+  margin-block-start: 0.67em;
+  margin-block-end: 0.67em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  font-weight: bold;
+}
+
+.yearlabel {
+  margin-top: 2%;
+}
+
+.yearlabel h3 {
+  margin: auto;
+  width: fit-content;
+}
+
+.message {
+  margin-top: 3%;
+  position: relative;
+  float: left;
+}
+
+.homepageimg {
+  height: 320px;
+  width: 90%;
+  margin: auto;
+  opacity: 0.9;
+}
+
+.homepageimg img {
+  height: 320px;
+  width: 100%;
+  margin: auto;
+  opacity: 0.9;
+}
+
+.navigation {
+  width: fit-content;
+  margin: auto;
+  clear: right;
+}
+
+button {
+  background-color: darkkhaki;
+  width: 100px;
+  height: 40px;
+}
+
+button:hover {
+  background-color: lightgreen;
+}
+
+.context {
+  width: 100%;
+  height: fit-content;
+  margin: auto;
+}
+
+.context p {
+  font-style: italic;
+  margin: 5%;
+  font-size: large;
+}
+
+#footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 2.5rem;
+  text-align: center;
+}
+
+.charts {
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+}
+
+.barchart {
+  opacity: 1;
+}
+
+.details,
+.topCountries {
+  float: left;
+  text-align: left;
+  margin-left: 50px;
+  height: fit-content;
+}
+
+.topCountries h3 {
+  margin-left: 8%;
+  margin-top: 5%
+}
+
+.topCountriesList {
+  margin-left: 5%;
+}
+
+rect {
+  stroke: grey;
+}
+
+.barchart {
+  opacity: 0;
+  float: left
+}
+
+#tooltip {
+  opacity: 0;
+  position: absolute;
+  text-align: left;
+  width: auto;
+  height: auto;
+  background: white;
+  border: 2 px;
+}
+
+.annotation {
+  position: absolute;
+  font-size: x-small;
+  transform: rotate(270deg);
+  transform-origin: top left;
+  margin-left: 4rem;
+}
+
+.content {
+  width: 90%;
+}
+
+#options {
+  float: left;
+  display: inline-flex;
+}
+
+fieldset {
+  opacity: 0;
+  float: left;
+  width: max-content;
+  height: fit-content;
+  margin-left: 50px;
+}
+
+path {
+  stroke: black;
+}
+
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+.arc path {
+  stroke: #fff;
+}

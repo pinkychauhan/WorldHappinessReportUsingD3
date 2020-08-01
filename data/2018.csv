@@ -1,4 +1,4 @@
-Country,Region,HappinessRank,HappinessScore,Economy,Family,Health,Freedom,Generosity,PerceptionOfCorruption,DystopiaResidual
+Country,Region,HappinessRank,HappinessScore,Economy,SocialSupport,Health,Freedom,Generosity,PerceptionOfCorruption,DystopiaResidual
 Finland,Western Europe,1,7.632,1.305,1.592,0.874,0.681,0.202,0.393,2.585
 Norway,Western Europe,2,7.594,1.456,1.582,0.861,0.686,0.286,0.34,2.383
 Denmark,Western Europe,3,7.555,1.351,1.59,0.868,0.683,0.284,0.408,2.371

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>World Happiness Report</title>
+  <link rel="stylesheet" type="text/css" href='styles/app.css' />
+</head>
+
+<body onload="init(2015)">
+  <div class="content" style="width:100%;">
+    <div class="charts">
+      <div class="pieyearlabel yearlabel">
+      </div>
+      <svg class="piechart"></svg>
+    </div>
+
+
+    <div class="additionalDetailsAndOptions" style="width:90%; display: flex;">
+
+      <div class="details" style="margin-top: 3%;">
+        <ul>
+          <li>Finland has been the world's happiest country for 3 years in a row now from 2018 to 2020.</li>
+          <li>Most of the countries from Western Europe have had the highest scores.</li>
+          <li>Use the filters to view the rankings for specific regions over 2015 to 2019.</li>
+          <li>Hover over any bar to view more details.</li>
+          <li>Annotations on top of bars indicate the position of the country with the highest rank in each selected region.</li>
+      </div>
+
+      <div id="options">
+        <fieldset>
+          <legend>Regions</legend>
+          <div>
+            <input type="radio" id="All" name="regions" value="All" checked onchange="displayChart()">
+            <label>All</label>
+          </div>
+          <div>
+            <input type="radio" id="Australia and New Zealand" name="regions" value="Australia and New Zealand" onchange="displayChart()">
+            <label>Australia and New Zealand</label>
+          </div>
+          <div>
+            <input type="radio" id="Central and Eastern Europe" name="regions" value="Central and Eastern Europe" onchange="displayChart()">
+            <label>Central and Eastern Europe</label>
+          </div>
+          <div>
+            <input type="radio" id="Eastern Asia" name="regions" value="Eastern Asia" onchange="displayChart()">
+            <label>Eastern Asia</label>
+          </div>
+          <div>
+            <input type="radio" id="Latin America and Caribbean" name="regions" value="Latin America and Caribbean" onchange="displayChart()">
+            <label>Latin America and Caribbean</label>
+          </div>
+          <div>
+            <input type="radio" id="Middle East and Northern Africa" name="regions" value="Middle East and Northern Africa" onchange="displayChart()">
+            <label>Middle East and Northern Africa</label>
+          </div>
+          <div>
+            <input type="radio" id="North America" name="regions" value="North America" onchange="displayChart()">
+            <label>North America</label>
+          </div>
+          <div>
+            <input type="radio" id="Southeastern Asia" name="regions" value="Southeastern Asia" onchange="displayChart()">
+            <label>Southeastern Asia</label>
+          </div>
+          <div>
+            <input type="radio" id="Southern Asia" name="regions" value="Southern Asia" onchange="displayChart()">
+            <label>Southern Asia</label>
+          </div>
+          <div>
+            <input type="radio" id="Sub-Saharan Africa" name="regions" value="Sub-Saharan Africa" onchange="displayChart()">
+            <label>Sub-Saharan Africa</label>
+          </div>
+          <div>
+            <input type="radio" id="Western Europe" name="regions" value="Western Europe" onchange="displayChart()">
+            <label>Western Europe</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Years</legend>
+          <div>
+            <input type="radio" id="2015" name="year" value="2015" checked onchange="init(2015)">
+            <label>2015</label>
+          </div>
+          <div>
+            <input type="radio" id="2016" name="year" value="2016" onchange="init(2016)">
+            <label>2016</label>
+          </div>
+          <div>
+            <input type="radio" id="2017" name="year" value="2017" onchange="init(2017)">
+            <label>2017</label>
+          </div>
+          <div>
+            <input type="radio" id="2018" name="year" value="2018" onchange="init(2018)">
+            <label>2018</label>
+          </div>
+          <div>
+            <input type="radio" id="2019" name="year" value="2019" onchange="init(2019)">
+            <label>2019</label>
+          </div>
+
+        </fieldset>
+
+      </div>
+    </div>
+    <div class="navigation" style="margin-top: 3%;">
+      <button id="prev" onclick="location.href='rankchart.html'">PREVIOUS</button>
+      <button id="next" onClick="location.href='scatterchart.html'">NEXT</button>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script type="text/javascript" src="scripts/app.js"></script>
+
+</body>
+
+</html>

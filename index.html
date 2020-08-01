@@ -1,322 +1,41 @@
 <!DOCTYPE html>
 <html>
-<script src='https://d3js.org/d3.v5.min.js'></script>
 
-<style>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>World Happiness Report</title>
+  <link rel="stylesheet" type="text/css" href='styles/app.css' />
+</head>
 
-  rect {
-    stroke: grey;
-  }
-  .chart {
-    opacity: 0;
-    border: solid;
-  }
-  #tooltip {
-    opacity: 0;
-    position: absolute;
-    text-align: left;
-    width: auto;
-    height: auto;
-    background: white;
-    border: 2 px;
-  }
-  fieldset {
-    opacity: 0;
-    position: relative;
-    float: left;
-    width: fit-content;
-  }
+<body>
+  <div class="homepage">
+    <div class="title">
+      <h2>World Happiness Report</h2>
+    </div>
+    <div class="note">
+      Created by Pinky Chauhan - Final Project CS498 Data Visualization
+    </div>
+    <div class="homepageimg">
+      <img src="images/happiness.jpg" />
+    </div>
 
-  path {stroke: black;}
+    <div class="context">
+      <p>The World Happiness Report is a landmark survey of the state of global happiness.
+        Data for this report is collected from people in over 150 countries. Each variable measured reveals a populated-weighted average score on a scale running from 0 to 10 that is tracked over time and compared against other countries.
+        These variables currently include: real GDP per capita, family/social support, healthy life expectancy, freedom to make life choices, generosity, and perceptions of corruption.
+        Each country is also compared against a hypothetical nation called Dystopia. Dystopia represents the lowest national averages for each key variable and is, along with residual error, used as a regression benchmark.
+    </div>
 
-</style>
+    <div class="navigation">
+      <button id="next" onClick="location.href='rankchart.html'">Get Started</button>
+    </div>
 
-<body onload='inithome()'>
-
-  <button id = "home" onclick = "inithome()"> HOME </button>
-  <button id = "2015" onClick = "init(2015)">2015</button>
-  <button id = "2016" onClick = "init(2016)">2016</button>
-  <button id = "2017" onClick = "init(2017)">2017</button>
-  <button id = "2018" onClick = "init(2018)">2018</button>
-  <button id = "2019" onClick = "init(2019)">2019</button>
-
-  <div class = "homepage">
-    HOMEPAGE
-  </div>
-
-  <svg class = "barchart">
-  </svg>
-
-  <div id = "tooltip"></div>
-
-  <div id = "options">
-    <fieldset>
-      <legend>Regions</legend>
-      <div>
-        <input type="radio" id="All" name="regions" value="All" checked onchange="displayChart()">
-        <label for="coding">All</label>
-      </div>
-      <div>
-        <input type="radio" id="Australia and New Zealand" name="regions" value="Australia and New Zealand" onchange="displayChart()">
-        <label for="coding">Australia and New Zealand</label>
-      </div>
-      <div>
-        <input type="radio" id="Central and Eastern Europe" name="regions" value="Central and Eastern Europe" onchange="displayChart()">
-        <label for="music">Central and Eastern Europe</label>
-      </div>
-      <div>
-        <input type="radio" id="Eastern Asia" name="regions" value="Eastern Asia" onchange="displayChart()">
-        <label for="coding">Eastern Asia</label>
-      </div>
-      <div>
-        <input type="radio" id="Latin America and Caribbean" name="regions" value="Latin America and Caribbean" onchange="displayChart()">
-        <label for="music">Latin America and Caribbean</label>
-      </div>
-      <div>
-        <input type="radio" id="Middle East and Northern Africa" name="regions" value="Middle East and Northern Africa" onchange="displayChart()">
-        <label for="coding">Middle East and Northern Africa</label>
-      </div>
-      <div>
-        <input type="radio" id="North America" name="regions" value="North America" onchange="displayChart()">
-        <label for="music">North America</label>
-      </div>
-      <div>
-        <input type="radio" id="Southeastern Asia" name="regions" value="Southeastern Asia" onchange="displayChart()">
-        <label for="coding">Southeastern Asia</label>
-      </div>
-      <div>
-        <input type="radio" id="Southern Asia" name="regions" value="Southern Asia" onchange="displayChart()">
-        <label for="music">Southern Asia</label>
-      </div>
-      <div>
-        <input type="radio" id="Sub-Saharan Africa" name="regions" value="Sub-Saharan Africa" onchange="displayChart()">
-        <label for="music">Sub-Saharan Africa</label>
-      </div>
-      <div>
-        <input type="radio" id="Western Europe" name="regions" value="Western Europe" onchange="displayChart()">
-        <label for="coding">Western Europe</label>
-      </div>
-    </fieldset>
-
-    <svg class = "list"></svg>
-    <svg class = "piechart">
-    </svg>
 
   </div>
 
-<script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 
-const regionNames = ["Australia and New Zealand","Central and Eastern Europe", "Eastern Asia", "Latin America and Caribbean",
-                  "Middle East and Northern Africa", "North America", "Southeastern Asia", "Southern Asia", "Sub-Saharan Africa",
-                  "Western Europe"];
-
-var data;
-
-async function inithome() {
-  console.log("HOMEPAGE");
-  d3.selectAll("rect").remove();
-  d3.select("#leftAxis").remove();
-  d3.select("#bottomAxis").remove();
-  d3.select(".barchart").style("opacity", 0);
-  document.getElementById("All").checked = true;
-  d3.select("fieldset").style("opacity", 0);
-  d3.select(".homepage").style("opacity", 1);
-  d3.selectAll("path").remove();
-  d3.selectAll("g").remove();
-
-}
-
-async function init(year) {
-  url = "https://raw.githubusercontent.com/pinkychauhan89/cs498dataviz/master/data/" + year + ".csv";
-  data = await d3.csv(url);
-  displayChart();
-}
-
- async function displayChart() {
-   width = 1600;
-   height = 600;
-   margin = 50;
-
-   d3.select(".homepage").style("opacity", 0);
-
-   d3.selectAll("rect").remove();
-   d3.select("#leftAxis").remove();
-   d3.selectAll("#bottomAxis").remove();
-   d3.selectAll("path").remove();
-   d3.selectAll("g").remove();
-
-   d3.select(".barchart")
-    .style("opacity", 1)
-    .attr("width", width + (2 * margin))
-    .attr("height", height + (2 * margin))
-
-   d3.select("fieldset").style("opacity", 1)
-   selectedRegions = getSelectedRegions();
-
-   const maxHappinessScore = 10;
-   const maxRank = data.length;
-
-   var x = d3.scaleLinear().domain([0, maxRank]).range([0, width]);
-   var y = d3.scaleLinear().domain([0, maxHappinessScore]).range([0, height]);
-   var neg_y = d3.scaleLinear().domain([0, maxHappinessScore]).range([height, 0]);
-   var color = d3.scaleLinear().domain([0, maxHappinessScore]).range(["red", "green"]);
-
-   var tooltip = d3.select("#tooltip");
-
-
-   d3.select(".barchart")
-     .append("g").attr("transform", "translate("+margin+","+margin+")")
-     .selectAll("rect").data(data)
-     .enter()
-     .append("rect")
-     .attr("x", function(d, i) { return  x(i) })
-     .attr("y", function(d, i) { return 600 - y(d["HappinessScore"]) })
-     .attr("width", 9)
-     .attr("height", 2)
-     .style("fill", function(d, i) {
-       var selected = false;
-       var i;
-       for (i = 0; i < selectedRegions.length; i++) {
-         if (selectedRegions[i] === d.Region) {
-           selected = true;
-           break;
-         }
-       }
-       if (selected) {
-         return color(d["HappinessScore"])
-       } else {
-         return "white";
-       }
-     })
-     .attr("class", function(d, i) {
-       var selected = false;
-       var i;
-       for (i = 0; i < selectedRegions.length; i++) {
-         if (selectedRegions[i] === d.Region) {
-           selected = true;
-           break;
-         }
-       }
-       if (selected) {
-         return "displayChart"
-       } else {
-         return "notdisplayChart";
-       }
-     })
-     .on("mousemove", function(d, i) {
-       tooltip
-            .style("opacity", 1)
-            .style("left", (d3.event.pageX) + "px")
-            .style("top", (d3.event.pageY + 10) + "px")
-            .html("Country: " + d["Country"] + "<br/>Region:" + d["Region"] + "<br/>Happiness Rank: " + d["HappinessRank"]
-            + "<br/>Happiness Score: " + d["HappinessScore"] + "<br/>Economy (GDP per Capita):" + d["Economy"]
-            + "<br/>Health (Life Expectancy): " + d["Health"]) })
-      .on("mouseleave", function(d, i) {
-        tooltip.style("opacity", 0)
-      })
-      .transition().duration(1000)
-      .attr("height", function(d, i) { return y(d["HappinessScore"]) })
-      ;
-
-
-    d3.select(".barchart")
-       .append("g").attr("id","leftAxis").attr("transform", "translate("+margin+","+margin+")")
-       .call(d3.axisLeft(neg_y));
-
-    d3.select(".barchart")
-       .append("g").attr("id","bottomAxis").attr("transform", "translate("+margin+","+(height+margin)+")")
-       .call(d3.axisBottom(x));
-
-    var sumEconomy = 0;
-    var sumSocial = 0;
-    var sumFreedom = 0;
-    var sumGenerosity = 0;
-    var sumCorruptionPerception = 0;
-    var sumHealth = 0;
-    var sumDystopiaResidual = 0;
-    var sumHappinessScore = 0;
-    var top5Countries = [];
-    var counter = 0;
-    var i,j;
-    for (j = 0; j < data.length; j++) {
-      for (i = 0; i < selectedRegions.length; i++) {
-        if (selectedRegions[i] === data[j].Region) {
-          counter = counter + 1;
-          sumEconomy = sumEconomy + parseFloat(data[j].Economy);
-          sumSocial = sumSocial + parseFloat(data[j].SocialSupport);
-          sumFreedom = sumFreedom + parseFloat(data[j].Freedom);
-          sumGenerosity = sumGenerosity + parseFloat(data[j].Generosity);
-          sumCorruptionPerception = sumCorruptionPerception + parseFloat(data[j].PerceptionOfCorruption);
-          sumHealth = sumHealth + parseFloat(data[j].Health);
-          sumDystopiaResidual = sumDystopiaResidual + parseFloat(data[j].DystopiaResidual);
-          if (counter <= 5) {
-            top5Countries.push(data[j].Country);
-          }
-        }
-      }
-    }
-    var color = ['pink','lightyellow','lightgreen','lightcyan','lightblue','violet','grey'];
-    var piedata = [sumEconomy/counter, sumSocial/counter, sumFreedom/counter, sumGenerosity/counter, sumCorruptionPerception/counter,
-                  sumHealth/counter, sumDystopiaResidual/counter];
-
-    var radius = 100;
-    var pie = d3.pie();
-    var path_begin = d3.arc()
-                     .outerRadius(radius - 50)
-                     .innerRadius(0);
-
-    var path_end = d3.arc()
-                    .outerRadius(radius - 10)
-                    .innerRadius(0);
-    var label = d3.arc()
-                      .outerRadius(radius)
-                      .innerRadius(radius - 80);
-
-    d3.select(".piechart")
-    .style("opacity", 1)
-     .style("position", "relative")
-     .style("float", "right")
-     .attr("width", 1600/4)
-     .attr("height", 600/2)
-
-
-     d3.select(".piechart")
-       .append("g").attr("transform", "translate("+150+","+150+")")
-       .selectAll("path")
-    .data(pie(piedata))
-    .enter()
-    .append("path")
-    .attr("d", path_begin)
-    .attr("fill",function(d, i) {
-      return color[i];
-    })
-    .transition().duration(1000)
-    .attr("d", path_end)
-    var k, str = "";
-    for (k = 0; k < top5Countries.length; k++) {
-      str = str + "<br/>" + top5Countries[k];
-    }
-    d3.select(".list").append("div").html("Top 5 countries: " + str);
-
-}
-
-function getSelectedRegions() {
-
-  var values = [];
-  var regions = document.getElementsByName("regions");
-  var i;
-  for (i = 0; i < regions.length; i++) {
-    if (regions[i].checked) {
-      if (regions[i].value === 'All') {
-        values = regionNames;
-        break;
-      }
-      values.push(regions[i].value);
-    }
-  }
-  return values;
-}
-
-</script>
 </body>
+
 </html>
