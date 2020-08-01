@@ -2,14 +2,13 @@ const regionNames = ["Australia and New Zealand", "Central and Eastern Europe", 
   "Middle East and Northern Africa", "North America", "Southeastern Asia", "Southern Asia", "Sub-Saharan Africa",
   "Western Europe"
 ];
-const color = ['pink', 'lightyellow', 'lightgreen', 'lightcyan', 'lightblue', 'violet', 'grey'];
-const labels = ['Economy', 'Perception of Corruption', 'Freedom', 'Social Support', 'Generosity',
-  'Health', 'Dystopia Residual'
-];
 
+
+var year;
 var data = [];
 var previousData = [];
-var year;
+var chartCategory = "bar";
+
 var piedata = [];
 
 var sumEconomy = 0;
@@ -24,16 +23,41 @@ var topCountries = [];
 var selectedRegions = [];
 
 
-async function init() {
-  this.year = getSelectedYear();
-  this.previousData = data;
+async function init(year, chartCategory) {
+  this.year = year;
+  this.chartCategory = chartCategory;
   var dataUrlForYear = "https://raw.githubusercontent.com/pinkychauhan89/cs498dataviz/master/data/" + this.year + ".csv";
+  this.previousData = data;
   this.data = await d3.csv(dataUrlForYear);
   displayCharts();
 
 }
 
 function displayCharts() {
+  computeValues();
+  clearCharts();
+  switch (this.chartCategory) {
+    case "bar": {
+      displayBarChart();
+      displayTopCountries();
+      break;
+    }
+    case "pie": {
+      displayPieChart();
+      break;
+    }
+    case "scatter": {
+      displayScatterChart();
+      break;
+    }
+    default: {
+      //nothing to display
+    }
+  }
+  displayFiltersAndOptions();
+}
+
+function computeValues() {
   sumEconomy = 0;
   sumSocial = 0;
   sumFreedom = 0;
@@ -43,14 +67,12 @@ function displayCharts() {
   sumDystopiaResidual = 0;
   sumHappinessScore = 0;
   topCountries = [];
-  this.selectedRegions = [];
 
   this.selectedRegions = getSelectedRegions();
 
   var counter = 0;
-  var i, j;
-  for (j = 0; j < data.length; j++) {
-    for (i = 0; i < selectedRegions.length; i++) {
+  for (var j = 0; j < data.length; j++) {
+    for (var i = 0; i < selectedRegions.length; i++) {
       if (selectedRegions[i] === data[j].Region) {
         counter = counter + 1;
         sumEconomy = sumEconomy + parseFloat(data[j].Economy);
@@ -67,26 +89,12 @@ function displayCharts() {
     }
   }
 
-
-  piedata = [sumEconomy / counter, sumSocial / counter, sumFreedom / counter, sumGenerosity / counter, sumCorruptionPerception / counter,
+  this.piedata = [sumEconomy / counter, sumCorruptionPerception / counter, sumFreedom / counter, sumSocial / counter, sumGenerosity / counter,
     sumHealth / counter, sumDystopiaResidual / counter
   ];
-
-  displayBarChart();
-  displayPieChart();
-  displayTopCountries();
-  displayScatterChart();
-
 }
 
-
-
-function displayBarChart() {
-  width = 0.9 * screen.width;
-  height = 350;
-  margin = 50;
-
-
+function clearCharts() {
   d3.selectAll("rect").remove();
   d3.select("#leftAxis").remove();
   d3.selectAll("#bottomAxis").remove();
@@ -97,31 +105,34 @@ function displayBarChart() {
   d3.select(".pieyearlabel").selectAll("h3").remove();
   d3.select(".scatteryearlabel").selectAll("h3").remove();
   d3.selectAll(".annotation").remove();
+  d3.select(".topCountriesList").selectAll("ul").remove();
+}
 
-  d3.select(".baryearlabel").append("h3").html("Happiness scores and ranking of countries for the year: " + year);
-  d3.select(".pieyearlabel").append("h3").html("Contribution of major factors to happiness score for the year: " + year);
-  d3.select(".scatteryearlabel").append("h3").html("Scatter plot between heath and social support for the year: " + year);
+function displayFiltersAndOptions() {
+  d3.selectAll("fieldset").style("opacity", 1);
+}
+
+function displayBarChart() {
+  const maxHappinessScore = 10;
+  const maxRank = data.length;
+
+  var width = 0.9 * screen.width;
+  var height = 350;
+  var margin = 50;
+
+  var scaleX = d3.scaleLinear().domain([0, maxRank]).range([0, width]);
+  var scaleY = d3.scaleLinear().domain([0, maxHappinessScore]).range([0, height]);
+  var scaleNegY = d3.scaleLinear().domain([0, maxHappinessScore]).range([height, 0]);
+  var scaleColor = d3.scaleLinear().domain([0, maxHappinessScore]).range(["red", "green"]);
+
+  var tooltip = d3.select("#tooltip");
+
+  d3.select(".baryearlabel").append("h3").html("Happiness scores and ranking of countries for the year: " + this.year);
 
   d3.select(".barchart")
     .style("opacity", 1)
     .attr("width", width + (2 * margin))
-    .attr("height", height + (2 * margin))
-
-  d3.selectAll("fieldset").style("opacity", 1)
-
-
-
-  const maxHappinessScore = 10;
-  const maxRank = data.length;
-
-  var x = d3.scaleLinear().domain([0, maxRank]).range([0, width]);
-  var y = d3.scaleLinear().domain([0, maxHappinessScore]).range([0, height]);
-  var neg_y = d3.scaleLinear().domain([0, maxHappinessScore]).range([height, 0]);
-  var color = d3.scaleLinear().domain([0, maxHappinessScore]).range(["red", "green"]);
-
-  var tooltip = d3.select("#tooltip");
-
-  d3.select(".charts").style("height", height);
+    .attr("height", height + (2 * margin));
 
   d3.select(".barchart")
     .append("g").attr("id", "main")
@@ -130,59 +141,35 @@ function displayBarChart() {
     .enter()
     .append("rect")
     .attr("x", function(d, i) {
-      return x(i)
+      return scaleX(i)
     })
     .attr("width", 0.9 * (width / data.length))
     .attr("height", function(d, i) {
       if (previousData != null && previousData != undefined && previousData.length >= (i + 1)) {
-        return y(previousData[i].HappinessScore);
+        return scaleY(previousData[i].HappinessScore);
       } else return 4;
     })
     .attr("y", function(d, i) {
       if (previousData != null && previousData != undefined && previousData.length >= (i + 1)) {
-        return height - y(previousData[i].HappinessScore);
+        return height - scaleY(previousData[i].HappinessScore);
       } else return height;
     })
     .style("fill", function(d, i) {
-      var selected = false;
-      var i;
-      for (i = 0; i < selectedRegions.length; i++) {
-        if (selectedRegions[i] === d.Region) {
-          selected = true;
-          break;
-        }
-      }
-      if (selected) {
-        return color(d["HappinessScore"])
+      if (isDataPointWithinSelection(d)) {
+        return scaleColor(d["HappinessScore"])
       } else {
         return "white";
       }
     })
     .style("stroke", function(d, i) {
-      var selected = false;
-      var i;
-      for (i = 0; i < selectedRegions.length; i++) {
-        if (selectedRegions[i] === d.Region) {
-          selected = true;
-          break;
-        }
-      }
-      if (selected) {
+      if (isDataPointWithinSelection(d)) {
         return "black";
       } else {
         return "white";
       }
     })
     .attr("class", function(d, i) {
-      var selected = false;
-      var i;
-      for (i = 0; i < selectedRegions.length; i++) {
-        if (selectedRegions[i] === d.Region) {
-          selected = true;
-          break;
-        }
-      }
-      if (selected) {
+      if (isDataPointWithinSelection(d)) {
         return "displayChart"
       } else {
         return "notdisplayChart";
@@ -192,8 +179,6 @@ function displayBarChart() {
       return d.Country;
     })
     .on("mousemove", function(d, i) {
-      //console.log(this);
-
       if (d3.select(this).attr("class") === 'displayChart') {
         tooltip
           .style("opacity", 1)
@@ -206,36 +191,42 @@ function displayBarChart() {
     })
     .on("mouseleave", function(d, i) {
       tooltip.style("opacity", 0)
+      .html("");
     })
     .transition().duration(500)
     .attr("height", function(d, i) {
-      return y(d["HappinessScore"])
+      return scaleY(d["HappinessScore"])
     })
     .attr("y", function(d, i) {
-      return height - y(d["HappinessScore"])
+      return height - scaleY(d["HappinessScore"])
     });
 
 
   d3.select(".barchart")
     .append("g").attr("id", "leftAxis").attr("transform", "translate(" + margin + "," + margin + ")")
-    .call(d3.axisLeft(neg_y));
+    .call(d3.axisLeft(scaleNegY));
 
   d3.select(".barchart")
     .append("g").attr("id", "bottomAxis").attr("transform", "translate(" + margin + "," + (height + margin) + ")")
-    .call(d3.axisBottom(x));
+    .call(d3.axisBottom(scaleX));
+
+  displayAnnotations(scaleX, scaleY, height);
 
 
+}
+
+
+function displayAnnotations(scaleX, scaleY, height) {
   var topCountryInEachSelectedRegion = [];
   var selectedRegionsWithCountryIdentified = [];
   var selectedTopMostCountriesScore = [];
   var selectedTopMostCountriesRank = [];
 
-  var a, b, c;
-  for (a = 0; a < data.length; a++) {
-    for (b = 0; b < selectedRegions.length; b++) {
+  for (var a = 0; a < data.length; a++) {
+    for (var b = 0; b < selectedRegions.length; b++) {
       if (data[a].Region === selectedRegions[b]) {
         var countryFound = false;
-        for (c = 0; c < selectedRegionsWithCountryIdentified.length; c++) {
+        for (var c = 0; c < selectedRegionsWithCountryIdentified.length; c++) {
           if (data[a].Region === selectedRegionsWithCountryIdentified[c]) {
             countryFound = true;
             break;
@@ -251,27 +242,43 @@ function displayBarChart() {
     }
   }
 
-  console.log(topCountryInEachSelectedRegion);
-  console.log(selectedRegionsWithCountryIdentified);
-  console.log(selectedTopMostCountriesScore);
-  console.log(selectedTopMostCountriesRank);
-
   d3.select(".annotations")
     .selectAll(".annotation").data(selectedTopMostCountriesRank).enter().append("div")
     .attr("class", "annotation")
     .style("opacity", 1)
     .style("left", function(d, i) {
-      return (x(d) - 17) + "px"
+      return (scaleX(d) - 17) + "px"
     })
     .style("top", function(d, i) {
-      return (95 + height - y(selectedTopMostCountriesScore[i])) + "px"
+      return (95 + height - scaleY(selectedTopMostCountriesScore[i])) + "px"
     })
     .html(function(d, i) {
       return selectedRegionsWithCountryIdentified[i] + " (" + topCountryInEachSelectedRegion[i] + ")";
     })
 }
 
+function displayTopCountries() {
+  //console.log(topCountries);
+  d3.select(".topCountriesList").append("ul").selectAll("li")
+    .data(topCountries)
+    .enter()
+    .append("li")
+    .html(function(d, i) {
+      return d;
+    })
+
+}
+
 function displayPieChart() {
+  const colors = ['pink', 'lightyellow', 'lightgreen', 'lightcyan', 'lightblue', 'violet', 'grey'];
+  const labels = ['Economy', 'Perception of Corruption', 'Freedom', 'Social Support', 'Generosity',
+    'Health', 'Dystopia Residual'
+  ];
+
+  var width = 550;
+  var height = 460;
+  var margin = 250;
+
   var radius = 160;
   var pie = d3.pie();
   var path = d3.arc()
@@ -281,15 +288,17 @@ function displayPieChart() {
     .outerRadius(radius + 60)
     .innerRadius(radius);
 
+  d3.select(".pieyearlabel").append("h3").html("Contribution of major factors to happiness score for the year: " + year);
+
   d3.select(".piechart")
     .style("opacity", 1)
     .style("position", "relative")
     .style("float", "right")
-    .attr("width", 550)
-    .attr("height", 460);
+    .attr("width", width)
+    .attr("height", height);
 
   var g = d3.select(".piechart")
-    .append("g").attr("transform", "translate(250, 220)");
+    .append("g").attr("transform", "translate(" + margin + ", " + margin + ")");
 
   var arc = g.selectAll(".arc")
     .data(pie(piedata))
@@ -298,7 +307,7 @@ function displayPieChart() {
   arc.append("path")
     .attr("d", path)
     .attr("fill", function(d, i) {
-      return color[i];
+      return colors[i];
     });
 
   arc.append("text")
@@ -311,33 +320,27 @@ function displayPieChart() {
 
 }
 
-function displayTopCountries() {
-  console.log(topCountries);
-  d3.select(".topCountriesList").selectAll("ul").remove();
-  d3.select(".topCountriesList").append("ul").selectAll("li")
-    .data(topCountries)
-    .enter()
-    .append("li")
-    .html(function(d, i) {
-      return d;
-    })
-
-}
 
 function displayScatterChart() {
-  var x_axis = d3.scaleLinear().domain([0, 1.5]).range([0, 600]);
-  var y_axis = d3.scaleLinear().domain([0, 2]).range([0, 400]);
-  var neg_y_axis = d3.scaleLinear().domain([0, 2]).range([400, 0]);
-  var color_axis = d3.scaleLinear().domain([0, 3]).range(["red", "green"]);
+  var width = 600;
+  var height = 400
+  var margin = 50;
+  var circleRadius = 4;
+  var scaleX = d3.scaleLinear().domain([0, 1.5]).range([0, width]);
+  var scaleY = d3.scaleLinear().domain([0, 2]).range([0, height]);
+  var scaleNegY = d3.scaleLinear().domain([0, 2]).range([height, 0]);
+  var scaleColor = d3.scaleLinear().domain([0, 3]).range(["red", "green"]);
 
   var tooltip = d3.select("#tooltip");
+
+  d3.select(".scatteryearlabel").append("h3").html("Scatter plot between heath and social support for the year: " + this.year);
 
   d3.select(".scatterchart")
     .style("opacity", 1)
     .style("position", "relative")
     .style("float", "right")
-    .attr("width", 700)
-    .attr("height", 500);
+    .attr("width", width + 100)
+    .attr("height", height + 100);
 
   d3.select(".scatterchart").append("g")
     .attr("transform", "translate(" + margin + ", " + margin + ")")
@@ -345,15 +348,15 @@ function displayScatterChart() {
     .enter()
     .append("circle")
     .attr("cx", function(d, i) {
-      return x_axis(d.Health);
+      return scaleX(d.Health);
     })
     .attr("cy", function(d, i) {
-      return 400 - y_axis(d.SocialSupport)
+      return height - scaleY(d.SocialSupport)
     })
-    .attr("r", 4)
+    .attr("r", circleRadius)
     .attr("stroke", "black")
     .attr("fill", function(d, i) {
-      return color_axis(parseFloat(d.Health) + parseFloat(d.SocialSupport));
+      return scaleColor(parseFloat(d.Health) + parseFloat(d.SocialSupport));
     })
     .on("mouseover", function(d, i) {
       tooltip
@@ -372,12 +375,12 @@ function displayScatterChart() {
   d3.select(".scatterchart")
     .append("g")
     .attr("transform", "translate(" + margin + ", " + margin + ")")
-    .call(d3.axisLeft(neg_y_axis));
+    .call(d3.axisLeft(scaleNegY));
 
   d3.select(".scatterchart")
     .append("g")
-    .attr("transform", "translate(" + margin + ", " + (400 + margin) + ")")
-    .call(d3.axisBottom(x_axis));
+    .attr("transform", "translate(" + margin + ", " + (height + margin) + ")")
+    .call(d3.axisBottom(scaleX));
 
 
 }
@@ -407,4 +410,15 @@ function getSelectedYear() {
     }
   }
   return selectedYear;
+}
+
+function isDataPointWithinSelection(data) {
+  var isDataPointWithinSelection = false;
+  for (var i = 0; i < this.selectedRegions.length; i++) {
+    if (this.selectedRegions[i] === data.Region) {
+      isDataPointWithinSelection = true;
+      break;
+    }
+  }
+  return isDataPointWithinSelection;
 }
