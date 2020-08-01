@@ -5,9 +5,12 @@ const regionNames = ["Australia and New Zealand", "Central and Eastern Europe", 
 
 
 var year;
+var previousYear;
+
 var data = [];
 var previousData = [];
-var chartCategory = "bar";
+
+var chartCategory = "";
 
 var piedata = [];
 
@@ -24,16 +27,17 @@ var selectedRegions = [];
 
 
 async function init(year, chartCategory) {
+  this.previousYear = this.year;
   this.year = year;
   this.chartCategory = chartCategory;
   var dataUrlForYear = "https://raw.githubusercontent.com/pinkychauhan89/cs498dataviz/master/data/" + this.year + ".csv";
-  this.previousData = data;
+  this.previousData = this.data;
   this.data = await d3.csv(dataUrlForYear);
-  displayCharts();
+  displayCharts(true);
 
 }
 
-function displayCharts() {
+function displayCharts(transition) {
   computeValues();
   clearCharts();
   switch (this.chartCategory) {
@@ -47,7 +51,7 @@ function displayCharts() {
       break;
     }
     case "scatter": {
-      displayScatterChart();
+      displayScatterChart(transition);
       break;
     }
     default: {
@@ -320,10 +324,9 @@ function displayPieChart() {
 
 }
 
-
-function displayScatterChart() {
+function displayScatterChart(transition) {
   var width = 600;
-  var height = 400
+  var height = 400;
   var margin = 50;
   var circleRadius = 4;
   var scaleX = d3.scaleLinear().domain([0, 1.5]).range([0, width]);
@@ -333,7 +336,9 @@ function displayScatterChart() {
 
   var tooltip = d3.select("#tooltip");
 
-  d3.select(".scatteryearlabel").append("h3").html("Scatter plot between heath and social support for the year: " + this.year);
+  d3.select(".scatteryearlabel")
+  .append("h3")
+  .html("Scatter plot between heath and social support for the year: " + this.year);
 
   d3.select(".scatterchart")
     .style("opacity", 1)
@@ -348,27 +353,61 @@ function displayScatterChart() {
     .enter()
     .append("circle")
     .attr("cx", function(d, i) {
-      return scaleX(d.Health);
+      if (transition) {
+        return 0;
+      } else {
+        return scaleX(d.Health);
+      }
     })
     .attr("cy", function(d, i) {
-      return height - scaleY(d.SocialSupport)
+      if (transition) {
+        return height;
+      } else {
+        return height - scaleY(d.SocialSupport);
+      }
     })
     .attr("r", circleRadius)
-    .attr("stroke", "black")
+    .style("opacity", function(d, i) {
+      if (isDataPointWithinSelection(d)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    })
+    .attr("stroke", function(d, i) {
+      if (isDataPointWithinSelection(d)) {
+        return "black";
+      } else {
+        return "white";
+      }
+    })
     .attr("fill", function(d, i) {
-      return scaleColor(parseFloat(d.Health) + parseFloat(d.SocialSupport));
+      if (isDataPointWithinSelection(d)) {
+        return scaleColor(parseFloat(d.Health) + parseFloat(d.SocialSupport));
+      } else {
+        return "white";
+      }
     })
     .on("mouseover", function(d, i) {
-      tooltip
-        .style("opacity", 1)
-        .style("left", (d3.event.pageX + 4) + "px")
-        .style("top", (d3.event.pageY + 5) + "px")
-        .style("border", "solid 1px")
-        .html(d.Country + "<br/>" + d.Region + "<br/>" + d.Health + "<br>" + d.SocialSupport);
+      if (isDataPointWithinSelection(d)) {
+        tooltip
+          .style("opacity", 1)
+          .style("left", (d3.event.pageX + 4) + "px")
+          .style("top", (d3.event.pageY + 5) + "px")
+          .style("border", "solid 1px")
+          .html(d.Country + "<br/>" + d.Region + "<br/>" + d.Health + "<br>" + d.SocialSupport);
+      }
     })
     .on("mouseout", function(d, i) {
       tooltip.style("opacity", 0)
         .html("");
+    })
+    .transition().duration(1000)
+    .attr("cx", function(d, i) {
+      return scaleX(d.Health);
+    })
+    .attr("cy", function(d, i) {
+      return height - scaleY(d.SocialSupport)
     });
 
 
