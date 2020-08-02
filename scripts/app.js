@@ -189,8 +189,9 @@ function displayBarChart() {
           .style("left", (d3.event.pageX) + "px")
           .style("top", (d3.event.pageY + 10) + "px")
           .html("Country: " + d["Country"] + "<br/>Region:" + d["Region"] + "<br/>Happiness Rank: " + d["HappinessRank"] +
-            "<br/>Happiness Score: " + d["HappinessScore"] + "<br/>Economy (GDP per Capita):" + d["Economy"] +
-            "<br/>Health (Life Expectancy): " + d["Health"])
+            "<br/>Happiness Score: " + d["HappinessScore"] + "<br/>Economy (GDP per Capita): " + d["Economy"] +
+            "<br/>Health: " + d["Health"] + "<br/>Freedom: " + d["Freedom"] + "<br/>SocialSupport: " + d["SocialSupport"] +
+          "<br/>Generosity: " + d["Generosity"] + "<br/>PerceptionOfCorruption: " + d["PerceptionOfCorruption"])
       }
     })
     .on("mouseleave", function(d, i) {
@@ -368,9 +369,6 @@ function displayScatterChart(transition) {
     .attr("cx", function(d, i) {
       if (transition) {
         var oldValue = getPreviousHealthDataValueForCountry(d.Country);
-        if (oldValue == 0 && previousData != undefined && previousData.length > 0) {
-          //oldValue = d.Health - 0.01;
-        }
         return scaleX(oldValue);
       } else {
         return scaleX(d.Health);
@@ -379,9 +377,6 @@ function displayScatterChart(transition) {
     .attr("cy", function(d, i) {
       if (transition) {
         var oldValue = getPreviousSocialSupportDataValueForCountry(d.Country);
-        if (oldValue == 0 && previousData != undefined && previousData.length > 0) {
-          //oldValue = d.SocialSupport - 0.01;
-        }
         return height - scaleY(oldValue);
       } else {
         return height - scaleY(d.SocialSupport);
@@ -405,13 +400,6 @@ function displayScatterChart(transition) {
     .attr("fill", function(d, i) {
       return scaleColor(parseFloat(d.Health) + parseFloat(d.SocialSupport));
     })
-    // .style("display", function(d, i) {
-    //   if (isDataPointWithinSelection(d)) {
-    //     return "block";
-    //   } else {
-    //     return "none";
-    //   }
-    // })
     .on("mouseover", function(d, i) {
       if (isDataPointWithinSelection(d)) {
         tooltip
@@ -419,7 +407,7 @@ function displayScatterChart(transition) {
           .style("left", (d3.event.pageX + 4) + "px")
           .style("top", (d3.event.pageY + 5) + "px")
           .style("border", "solid 1px")
-          .html(d.Country + "<br/>" + d.Region + "<br/>" + d.Health + "<br>" + d.SocialSupport);
+          .html(d.Country + "<br/>(" + d.Region + ")<br/>Health: " + d.Health + "<br>Social Support: " + d.SocialSupport);
       }
     })
     .on("mouseout", function(d, i) {
