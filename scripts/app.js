@@ -131,7 +131,7 @@ function displayBarChart() {
 
   var tooltip = d3.select("#tooltip");
 
-  d3.select(".baryearlabel").append("h3").html("Happiness scores and ranking of countries for the year: " + this.year);
+  d3.select(".baryearlabel").append("h3").html("Happiness scores based ranking of countries for the year: " + this.year);
 
   d3.select(".barchart")
     .style("opacity", 1)
@@ -292,7 +292,7 @@ function displayPieChart() {
     .outerRadius(radius + 60)
     .innerRadius(radius);
 
-  d3.select(".pieyearlabel").append("h3").html("Contribution of major factors to happiness score for the year: " + year);
+  d3.select(".pieyearlabel").append("h3").html("Contribution of factors comprising happiness score for the year: " + year);
 
   d3.select(".piechart")
     .style("opacity", 1)
@@ -328,7 +328,7 @@ function displayScatterChart(transition) {
   var width = 600;
   var height = 400;
   var margin = 50;
-  var circleRadius = 4;
+  var circleRadius = 6;
   var scaleX = d3.scaleLinear().domain([0, 1.5]).range([0, width]);
   var scaleY = d3.scaleLinear().domain([0, 2]).range([0, height]);
   var scaleNegY = d3.scaleLinear().domain([0, 2]).range([height, 0]);
@@ -336,9 +336,22 @@ function displayScatterChart(transition) {
 
   var tooltip = d3.select("#tooltip");
 
+  var dataOrderedBySelection = [];
+  var unselectedData = [];
+  var selectedData = [];
+  for (var i = 0; i < data.length; i++) {
+    if (isDataPointWithinSelection(data[i])) {
+      selectedData.push(data[i]);
+    } else {
+      unselectedData.push(data[i]);
+    }
+  }
+  dataOrderedBySelection = (unselectedData.concat(selectedData));
+
+
   d3.select(".scatteryearlabel")
   .append("h3")
-  .html("Scatter plot between heath and social support for the year: " + this.year);
+  .html("Scatter plot between health and social/family support for the year: " + this.year);
 
   d3.select(".scatterchart")
     .style("opacity", 1)
@@ -349,19 +362,27 @@ function displayScatterChart(transition) {
 
   d3.select(".scatterchart").append("g")
     .attr("transform", "translate(" + margin + ", " + margin + ")")
-    .selectAll("circle").data(data)
+    .selectAll("circle").data(dataOrderedBySelection)
     .enter()
     .append("circle")
     .attr("cx", function(d, i) {
       if (transition) {
-        return 0;
+        var oldValue = getPreviousHealthDataValueForCountry(d.Country);
+        if (oldValue == 0 && previousData != undefined && previousData.length > 0) {
+          //oldValue = d.Health - 0.01;
+        }
+        return scaleX(oldValue);
       } else {
         return scaleX(d.Health);
       }
     })
     .attr("cy", function(d, i) {
       if (transition) {
-        return height;
+        var oldValue = getPreviousSocialSupportDataValueForCountry(d.Country);
+        if (oldValue == 0 && previousData != undefined && previousData.length > 0) {
+          //oldValue = d.SocialSupport - 0.01;
+        }
+        return height - scaleY(oldValue);
       } else {
         return height - scaleY(d.SocialSupport);
       }
@@ -371,7 +392,7 @@ function displayScatterChart(transition) {
       if (isDataPointWithinSelection(d)) {
         return 1;
       } else {
-        return 0;
+        return 0.2;
       }
     })
     .attr("stroke", function(d, i) {
@@ -382,12 +403,15 @@ function displayScatterChart(transition) {
       }
     })
     .attr("fill", function(d, i) {
-      if (isDataPointWithinSelection(d)) {
-        return scaleColor(parseFloat(d.Health) + parseFloat(d.SocialSupport));
-      } else {
-        return "white";
-      }
+      return scaleColor(parseFloat(d.Health) + parseFloat(d.SocialSupport));
     })
+    // .style("display", function(d, i) {
+    //   if (isDataPointWithinSelection(d)) {
+    //     return "block";
+    //   } else {
+    //     return "none";
+    //   }
+    // })
     .on("mouseover", function(d, i) {
       if (isDataPointWithinSelection(d)) {
         tooltip
@@ -400,7 +424,9 @@ function displayScatterChart(transition) {
     })
     .on("mouseout", function(d, i) {
       tooltip.style("opacity", 0)
-        .html("");
+      .style("left", "0px")
+      .style("top", "0px")
+      .html("");
     })
     .transition().duration(1000)
     .attr("cx", function(d, i) {
@@ -460,4 +486,26 @@ function isDataPointWithinSelection(data) {
     }
   }
   return isDataPointWithinSelection;
+}
+
+function getPreviousHealthDataValueForCountry(country) {
+  if (previousData != null && previousData != undefined) {
+    for (var i = 0; i < previousData.length; i++) {
+      if (previousData[i].Country === country) {
+        return previousData[i].Health;
+      }
+    }
+  }
+  return 0;
+}
+
+function getPreviousSocialSupportDataValueForCountry(country) {
+  if (previousData != null && previousData != undefined) {
+    for (var i = 0; i < previousData.length; i++) {
+      if (previousData[i].Country === country) {
+        return previousData[i].SocialSupport;
+      }
+    }
+  }
+  return 0;
 }
